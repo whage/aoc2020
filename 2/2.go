@@ -24,17 +24,15 @@ func main() {
 
 	for _, line := range lines {
 		matches := r.FindStringSubmatch(line)
-			fmt.Printf("%#v\n", matches)
-		min, _ := strconv.Atoi(matches[1])
-		max, _ := strconv.Atoi(matches[2])
+		fmt.Printf("%#v\n", matches)
+		pos1, _ := strconv.Atoi(matches[1])
+		pos2, _ := strconv.Atoi(matches[2])
 		character := matches[3][0]
 		password := matches[4]
 
-		count := 0
-		for _, c := range password {
-			if c == rune(character) { count++}
-		}
-		if count >= min && count <= max {
+		pos1_ok := password[pos1-1] == character
+		pos2_ok := password[pos2-1] == character
+		if pos1_ok != pos2_ok {
 			validCount++
 		}
 	}
