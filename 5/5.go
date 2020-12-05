@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"os"
 	"math"
+	"sort"
 )
 
 func main() {
@@ -18,13 +19,25 @@ func main() {
 	}
 
 	max := 0
+	var seats []int
 
 	for _, l := range lines {
 		row := mapToBinary(l[:7])
 		column := mapToBinary(l[7:])
 		product := row * 8 + column
+		seats = append(seats, product)
 		if product > max {
 			max = product
+		}
+	}
+
+	sort.Ints(seats)
+
+	for idx, _ := range seats {
+		if idx == 0 { continue }
+		if seats[idx] == seats[idx-1] + 2 {
+			fmt.Println(seats[idx] - 1)
+			break
 		}
 	}
 
