@@ -5,18 +5,13 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+	"strings"
+	"strconv"
 )
 
-func createPattern(s string) string {
-	return fmt.Sprintf(`(.+ bag)s contain.+%s`, s)
-}
-
-func removeDuplicates(list []string, pattern string) []string {
-	results := []string{}
-	for _, p := range list {
-		if p != pattern { results = append(results, p)}
-	}
-	return results
+type BagCount struct {
+	Name string
+	Count int
 }
 
 func main() {
@@ -29,23 +24,45 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
-	patterns := []string{
-		createPattern("shiny gold bag"),
-	}
-	parentBags := map[string]bool{}
+	m := map[string][]BagCount{}
 
-	for len(patterns) > 0 {
-		r := regexp.MustCompile(patterns[0])
-		for _, line := range lines {
-			matches := r.FindStringSubmatch(line)
-			if matches != nil {
-				patterns = append(patterns, createPattern(matches[1]))
-				parentBags[matches[1]] = true
+	for _, line := range lines {
+		r := regexp.MustCompile(`(.+) bags contain`)
+		parentBagMatches := r.FindStringSubmatch(line)
+		if parentBagMatches != nil {
+			parentBag := parentBagMatches[1]
+			startIdx := strings.Index(line, "contain") + 8
+			containedBags := []BagCount{}
+			containedBagsParts := strings.Split(line[startIdx:], ",")
+			for _, str := range containedBagsParts {
+				r := regexp.MustCompile(`(\d+) (.+) bag(s)?`)
+				matches := r.FindStringSubmatch(str)
+				if matches != nil {
+					n, _ := strconv.Atoi(matches[1])
+					containedBags = append(containedBags, BagCount{Name: matches[2], Count: n})
+				}
+			}
+			if len(containedBags) > 0 {
+				m[parentBag] = containedBags
 			}
 		}
-		patterns = removeDuplicates(patterns, patterns[0])
 	}
+	fmt.Println(summarize(m, "shiny gold"))
+}
 
-	fmt.Println(len(parentBags))
+func summarize(m map[string][]BagCount, key string) int {
+	containedBags, ok := m[key]
+	if !ok {
+		return 1
+	}
+	sum := 0
+	for _, bagType := range containedBags {
+		sum += bagType.Count * summarize(m, bagType.Name)
+		_, ok := m[bagType.Name]
+		if ok {
+			sum += bagType.Count
+		}
 
+	}
+	return sum
 }
