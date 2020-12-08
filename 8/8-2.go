@@ -13,6 +13,14 @@ type Instruction struct {
 	Visited bool
 }
 
+func copyInsturctions(i []Instruction) []Instruction {
+	ret := make([]Instruction, len(i))
+	for idx, v := range i {
+		ret[idx] = v
+	}
+	return ret
+}
+
 func main() {
 	data, _ := ioutil.ReadFile("data.txt")
 
@@ -20,13 +28,16 @@ func main() {
 
 	instructions := []Instruction{}
 	for _, ins := range lines {
-		instructions = append(instructions, Instruction{Op: ins, Visited: false})
+		if ins != "" {
+			instructions = append(instructions, Instruction{Op: ins, Visited: false})
+		}
 	}
 
-	lastSwitched := -1
+	originalInstructions := copyInsturctions(instructions)
 	
 	ip := 0
 	acc := 0
+	lastSwitchedIdx := -1
 
 	for {
 		instructions[ip].Visited = true
@@ -51,7 +62,7 @@ func main() {
 
 		// if getting into a loop
 		if instructions[ip].Visited {
-			instructions = switchNext(instructions, &lastSwitched)
+			instructions = switchNext(copyInsturctions(originalInstructions), &lastSwitchedIdx)
 			ip = 0
 			acc = 0
 		}
@@ -60,32 +71,27 @@ func main() {
 	fmt.Println(acc)
 }
 
-func switchNext(instructions []Instruction, lastSwitched *int) []Instruction {
-	ret := make([]Instruction, len(instructions))
-	for idx, ins := range instructions {
-		ret[idx] = ins
-		ret[idx].Visited = false // reset
+func switchOp(ins Instruction) string {
+	if ins.Op[:3] == "jmp" {
+		return strings.ReplaceAll(ins.Op, "jmp", "nop")
+	}
 
-		if idx > *lastSwitched {
-			fmt.Println(ret[idx].Op)
-			if ret[idx].Op[:2] == "jmp" {
-				ret[idx].Op = strings.ReplaceAll(ret[idx].Op, "nop", "jmp")
-			}
+	if ins.Op[:3] == "nop" {
+		return strings.ReplaceAll(ins.Op, "nop", "jmp")
+	}
 
-			if ret[idx].Op[:3] == "nop" {
-				ret[idx].Op = strings.ReplaceAll(ret[idx].Op, "jpm", "nop")
-			}
-		}
+	return ins.Op
+}
 
-		if *lastSwitched >= 0 {
-			if ret[*lastSwitched].Op[:3] == "jmp" {
-				ret[*lastSwitched].Op = strings.ReplaceAll(ret[*lastSwitched].Op, "nop", "jmp")
-			}
-
-			if ret[*lastSwitched].Op[:3] == "nop" {
-				ret[*lastSwitched].Op = strings.ReplaceAll(ret[*lastSwitched].Op, "jpm", "nop")
+func switchNext(baseInstructions []Instruction, lastSwitchedIdx *int) []Instruction {
+	for idx, ins := range baseInstructions {
+		if ins.Op[:3] == "jmp" || ins.Op[:3] == "nop" {
+			if idx > *lastSwitchedIdx {
+				baseInstructions[idx].Op = switchOp(ins)
+				*lastSwitchedIdx = idx
+				break;
 			}
 		}
 	}
-	return ret
+	return baseInstructions
 }
