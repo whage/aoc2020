@@ -24,8 +24,6 @@ func main() {
 
 	flags := make([]bool, len(numbers))
 
-	numberOfCombinations := 1
-
 	for idx, _ := range numbers {
 		if idx == 0 && numbers[1] <= 3 {
 			flags[idx] = true
@@ -37,22 +35,29 @@ func main() {
 		}
 	}
 
+	fmt.Println(flags)
+
+	runLengths := []int{}
+	counter := 0
+
 	for _, v := range flags {
-		
+		if v {
+			counter++
+		} else {
+			runLengths = append(runLengths, counter)
+			counter = 0
+		}
 	}
 
-	/*fmt.Println(indexesOfUselessOnes)
-	fmt.Println("len", len(indexesOfUselessOnes))
+	fmt.Println(runLengths)
 
-	for idx, _ := range indexesOfUselessOnes {
-		if idx > 0 {
-			if indexesOfUselessOnes[idx] - indexesOfUselessOnes[idx-1] == 1 {
-				numberOfCombinations += 2
-			} else {
-				numberOfCombinations *= 2
-			}
-		}
-	}*/
-	
-	fmt.Println("numberOfCombinations", numberOfCombinations)
+	product := 1
+
+	for _, rl := range runLengths {
+		if rl == 1 { product *= 2 }
+		if rl == 2 { product *= 4 }
+		if rl == 3 { product *= 7 }
+	}
+
+	fmt.Println(product)
 }
