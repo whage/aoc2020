@@ -9,44 +9,42 @@ type Pair struct {
 	BeforeLast int
 }
 
-func (p *Pair) Shift(currentTurn int) {
+func (p *Pair) Shift(currentTurn int) Pair {
 	p.BeforeLast = p.Last
 	p. Last = currentTurn
+	return *p
 }
 
 func main() {
-	numbers := []int{0,3,6}
-	turnMap := map[int]Pair{
-		0: Pair{Last: 1, BeforeLast: 0},
-		3: Pair{Last: 2, BeforeLast: 0},
-		6: Pair{Last: 3, BeforeLast: 0},
+	numbers := []int{0,3,1,6,7,5}
+	tracker := map[int]Pair{}
+
+	for idx, i := range numbers {
+		tracker[i] = Pair{Last: idx+1, BeforeLast: 0}
 	}
 
-	turnCount := 4
-	lastNumberSpoken := numbers[len(numbers)-1]
+	count := len(numbers)+1
+	last := numbers[len(numbers)-1]
+	var newNumber int
 
-	//for turnCount <= 2020 {
-	for turnCount <= 6 {
-		fmt.Println("lastNumberSpoken", lastNumberSpoken)
-		fmt.Println("turnCount",turnCount)
-		pair, ok := turnMap[lastNumberSpoken]
-		fmt.Println("pair at beginngin", pair)
-		if !ok {
-			lastNumberSpoken = 0
-			turnMap[turnCount] = Pair{Last: turnCount, BeforeLast: 0}
+	for count <= 2020 {
+		pair, _ := tracker[last]
+		if pair.BeforeLast == 0 {
+			newNumber = 0
 		} else {
-			if pair.BeforeLast == 0 {
-				lastNumberSpoken = 0
-			} else {
-				lastNumberSpoken = pair.Last - pair.BeforeLast
-			}
-			fmt.Println("pair after shifting", pair)
+			newNumber = pair.Last - pair.BeforeLast
 		}
-		fmt.Println("next lastNumberSpoken", lastNumberSpoken)
-		fmt.Println()
-		
-		turnCount++
+
+		t, ok := tracker[newNumber]
+		if !ok {
+			tracker[newNumber] = Pair{Last: count, BeforeLast: 0}
+		} else {
+			tracker[newNumber] = t.Shift(count)
+		}
+
+		last = newNumber
+		count++
 	}
 
-	fmt.Println(lastNumberSpoken)
+	fmt.Println(last)
 }
