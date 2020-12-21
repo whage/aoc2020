@@ -27,7 +27,7 @@ func main() {
 	last := numbers[len(numbers)-1]
 	var newNumber int
 
-	for count <= 2020 {
+	for count <= 30000000 {
 		pair, _ := tracker[last]
 		if pair.BeforeLast == 0 {
 			newNumber = 0
