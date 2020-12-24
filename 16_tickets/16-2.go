@@ -31,7 +31,17 @@ func (s *Set) add(c int) {
 }
 
 func (s *Set) remove(c int) {
-	(*s)[c] = false
+	delete(*s, c)
+}
+
+func (s *Set) items() []int {
+	i := 0
+	keys := make([]int, len(*s))
+	for k := range *s {
+	    keys[i] = k
+	    i++
+	}
+	return keys
 }
 
 func (s *Set) intersect(other *Set) *Set {
@@ -41,6 +51,10 @@ func (s *Set) intersect(other *Set) *Set {
 		if ok { result[k] = v }
 	}
 	return &result
+}
+
+func (s *Set) size() int {
+	return len(*s)
 }
 
 func newSet(numbers []int) Set {
@@ -116,19 +130,29 @@ func main() {
 		}
 	}
 
-	for mappingIdx, mapping := range potentialMappings {
-		potentialFieldCount := 0
-		lastPotentialField := ""
-		for key, v := range mapping {
-			if v {
-				potentialFieldCount++
-				lastPotentialField = rules[key].Name
+	finalMappings := map[int]string{}
+
+	for len(finalMappings) < 20 {
+		for fieldIdx, mapping := range potentialMappings {
+			if len(mapping) == 1 {
+				item := mapping.items()[0]
+				finalMappings[fieldIdx] = rules[item].Name
+				for i, _ := range potentialMappings {
+					if i != fieldIdx { potentialMappings[i].remove(item) }
+				}
 			}
 		}
-		if potentialFieldCount == 1 {
-			fmt.Println("mappintIdx", mappingIdx)
-			fmt.Println("mapping", mapping)
-			fmt.Printf("Field at idx %d must be %s\n", mappingIdx, lastPotentialField)
+	}
+
+	myTicket := strings.Split(strings.Split(sections[1], "\n")[1], ",")
+
+	product := 1
+	for idx, field := range finalMappings {
+		if strings.Contains(field, "departure") {
+			value, _ := strconv.Atoi(myTicket[idx])
+			product *= value
 		}
 	}
+
+	fmt.Println("product", product)
 }
